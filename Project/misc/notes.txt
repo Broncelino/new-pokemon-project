@@ -1,0 +1,10 @@
+Moves to be fixed: accupressure, bide, assist, curse, copycat, conversion2. encore, 
+guardswap/split, heartswap, mist, powersplit/swap psych-up, round, sleeptalk
+spite, stockpile
+
+
+castform forms
+
+
+status moves and status condition effects frz and par in Dodge_chanve(?) slp idk
+server stuff lol
