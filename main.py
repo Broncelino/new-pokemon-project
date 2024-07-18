@@ -23,7 +23,7 @@ class Pokemon:
 
 class Pokemon2:
    
-   def __init__(mon, pokemon, moves, max, stat_changes: dict = {'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6}, status = None):
+   def __init__(mon, pokemon, moves, max, itm, stat_changes: dict = {'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status = None):
       mon.moves = moves
       mon.poke = pokemon
       mon.name = pokemon.name
@@ -31,6 +31,7 @@ class Pokemon2:
       mon.changes = stat_changes #[atk, def, spatk, spdef, spd, acc, eve]
       mon.status = status
       mon.max = max
+      mon.itm = itm
 class Move:
     #Class that makes the moves for each pokemon
     def __init__(move, name, power, type, accuracy, attack_type, priority,  _self, _opp, _recoil, target):
@@ -57,122 +58,145 @@ with open('move_data.pickle', 'rb') as file:
 # print(move_data)
 
 def main():
-   stat_table = [.25, .28, .33, .40, .5, .66, 1, 1.5, 2, 2.5, 3, 3.5, 4]
-   team1 = [Pokemon2(pokemon_data['kyogre'], [move_data['ember'],move_data['willowisp'],move_data['tackle'],move_data['hydropump']],pokemon_data['kyogre'].hp, stat_changes={'atk':6,'def':6,'spa':6,'spd':12,'spe':6,'acc':6,'eva':6}, status=None),
-             Pokemon2(pokemon_data['groudon'], [move_data['swordsdance'],move_data['earthquake'],move_data['firepunch'],move_data['doubleedge']],pokemon_data['groudon'].hp, stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6})]
-   team2 = [Pokemon2(pokemon_data['palkia'], [move_data['ember'],move_data['leafstorm'],move_data['icebeam'],move_data['doubleedge']],pokemon_data['arceus'].hp, stat_changes={'atk':6,'def':6,'spa':6,'spd':12,'spe':6,'acc':6,'eva':6}, status =None),
-             Pokemon2(pokemon_data['wooper'], [move_data['rocksmash'],move_data['aquatail'],move_data['quickattack'],move_data['hydropump']],pokemon_data['wooper'].hp, stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6})]
-   # team1, team2 = move_select(pokemon_select()), move_select(pokemon_select())
-   p1,p2 = choose_mon(team1), choose_mon(team2)
-   print('Player1:',p1.name,'\nPlayer2:',p2.name)
-   while len(team1) > 0 and len(team2) > 0: #game loops until one of the teams is out of pokemon note: should never hit this because a break is applied after every death check
-      p1par = 1
-      p2par = 1 #will be multiplied by each mon's speed
-      if p1.status == 'par': 
-         p1par = .25 #speed is 25% while paralyzed
-      if p2.status == 'par':
-         p2par = .25
-      # print('Player1 choose your action:')
-      p1choice =int(input('\n1. Moves\n2. Switch\nPlayer 1, Pick what you want {0} to do: '.format(p1.name)))
-      print('')
-      if p1choice == 2:
-         print('switch p1')
-         p1 = switch(team1,p1)
-      if p1choice == 1:
-         p1choice = move_choice(p1)
-      # print('Player2 choose your action:')
-      p2choice =int(input('\n1. Moves\n2. Switch\nPlayer2, Pick what you want {0} to do: '.format(p2.name)))
-      print('')
-      if p2choice == 2:
-         print('switch p2')
-         p2 = switch(team2,p2)
-      if p2choice == 1:
-         p2choice = move_choice(p2)
-      if p1choice !=2 and p2choice !=2:
-         if p1choice.priority == p2choice.priority:
-            if p1.poke.spd*p1par*stat_table[p1.changes['spe']] > p2.poke.spd*p2par*stat_table[p2.changes['spe']]:
-               p1, p1choice, team1,p2,p2choice,team2 = resolve_attacking_turn(p1, p1choice, team1,p2,p2choice,team2)
-               
-            elif p1.poke.spd*p1par*stat_table[p1.changes['spe']] < p2.poke.spd*p2par*stat_table[p2.changes['spe']]:
-               p2,p2choice,team2,p1, p1choice, team1 = resolve_attacking_turn(p2,p2choice,team2,p1, p1choice, team1)
-               if p2 == 0 or p2 == 1:
-                  break               
-            else:
-               if random.randint(1,2) == 1: #if there is a speed and priority tie its a coin flip of who goes first.
+   rematch = True
+   while rematch == True:
+      stat_table = [.25, .28, .33, .40, .5, .66, 1, 1.5, 2, 2.5, 3, 3.5, 4]
+      team1 = [Pokemon2(pokemon_data['rayquaza'], [move_data['extremespeed'],move_data['swordsdance'],move_data['thunderwave'],move_data['earthquake']],pokemon_data['rayquaza'].hp, 'leftovers', stat_changes={'atk':12,'def':6,'spa':6,'spd':6,'spe':12,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['arceus'], [move_data['extremespeed'],move_data['calmmind'],move_data['blizzard'],move_data['toxic']],pokemon_data['arceus'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['gliscor'], [move_data['rockpolish'],move_data['poisonjab'],move_data['quickattack'],move_data['steelwing']],pokemon_data['gliscor'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['garchomp'], [move_data['surf'],move_data['poisonjab'],move_data['fireblast'],move_data['swordsdance']],pokemon_data['garchomp'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['mew'], [move_data['psychic'],move_data['ancientpower'],move_data['earthpower'],move_data['firepunch']],pokemon_data['mew'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['giratina'], [move_data['earthquake'],move_data['calmmind'],move_data['aurasphere'],move_data['dragonpulse']],pokemon_data['giratina'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None)]
+      
+      team2 = [Pokemon2(pokemon_data['ninjask'], [move_data['bugbite'],move_data['shadowball'],move_data['toxic'],move_data['swordsdance']],pokemon_data['ninjask'].hp, 'leftovers', stat_changes={'atk':6,'def':0,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['metagross'], [move_data['bulletpunch'],move_data['agility'],move_data['irondefense'],move_data['psychic']],pokemon_data['metagross'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['infernape'], [move_data['machpunch'],move_data['closecombat'],move_data['poisonjab'],move_data['toxic']],pokemon_data['infernape'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['skarmory'], [move_data['toxic'],move_data['irondefense'],move_data['drillpeck'],move_data['steelwing']],pokemon_data['skarmory'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['groudon'], [move_data['swordsdance'],move_data['earthquake'],move_data['dragonclaw'],move_data['fireblast']],pokemon_data['groudon'].hp, 'leftovers', stat_changes={'atk':6,'def':0,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None),
+               Pokemon2(pokemon_data['kyogre'], [move_data['hydropump'],move_data['blizzard'],move_data['bodyslam'],move_data['earthquake']],pokemon_data['kyogre'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status= None)]
+      # team1, team2 = move_select(pokemon_select()), move_select(pokemon_select())
+      p1,p2 = choose_mon(team1), choose_mon(team2)
+      print('Player1:',p1.name,'\nPlayer2:',p2.name)
+      while len(team1) > 0 and len(team2) > 0: #game loops until one of the teams is out of pokemon note: should never hit this because a break is applied after every death check
+         print(p1.changes,p2.changes)
+         p1par = 1
+         p2par = 1 #will be multiplied by each mon's speed
+         if p1.status == 'par': 
+            p1par = .25 #speed is 25% while paralyzed
+         if p2.status == 'par':
+            p2par = .25
+         p1starthp = p1.poke.hp
+         p2starthp = p2.poke.hp
+         # print('Player1 choose your action:')
+         p1choice =int(input('\n1. Moves\n2. Switch\nPlayer 1, Pick what you want {0} to do: '.format(p1.name)))
+         print('')
+         if p1choice == 2:
+            print('switch p1')
+            p1 = switch(team1,p1)
+         if p1choice == 1:
+            p1choice = move_choice(p1)
+         # print('Player2 choose your action:')
+         p2choice =int(input('\n1. Moves\n2. Switch\nPlayer2, Pick what you want {0} to do: '.format(p2.name)))
+         print('')
+         if p2choice == 2:
+            print('switch p2')
+            p2 = switch(team2,p2)
+         if p2choice == 1:
+            p2choice = move_choice(p2)
+         if p1choice !=2 and p2choice !=2:
+            if p1choice.priority == p2choice.priority:
+               if p1.poke.spd*p1par*stat_table[p1.changes['spe']] > p2.poke.spd*p2par*stat_table[p2.changes['spe']]:
                   p1, p1choice, team1,p2,p2choice,team2 = resolve_attacking_turn(p1, p1choice, team1,p2,p2choice,team2)
-                  if p1 == 0 or p1 == 1:
-                     break
-               else:
+                  if p2 == 0 or p2 == 1:
+                     break 
+                  
+               elif p1.poke.spd*p1par*stat_table[p1.changes['spe']] < p2.poke.spd*p2par*stat_table[p2.changes['spe']]:
                   p2,p2choice,team2,p1, p1choice, team1 = resolve_attacking_turn(p2,p2choice,team2,p1, p1choice, team1)
                   if p2 == 0 or p2 == 1:
-                     break
-                  
-         elif p1choice.priority > p2choice.priority:
-            p1, p1choice, team1,p2,p2choice,team2 = resolve_attacking_turn(p1, p1choice, team1,p2,p2choice,team2)
-            if p1 == 0 or p1 == 1:
-               break
-         elif p1choice.priority < p2choice.priority:
-            p2,p2choice,team2,p1, p1choice, team1 = resolve_attacking_turn(p2,p2choice,team2,p1, p1choice, team1)
-            if p2 == 0 or p2 == 1:
-               break
-      elif p1choice != 2 and p2choice == 2:
-         damage, clear= damage_calc(p1choice, p1, p2)
-        
-         if clear == 1:
-            p1.status = None
-         if clear == 2:
-            p1.status['slp'] += 1
-         p2.poke.hp = new_health(damage, p2)
-         dead = check_dead(team2, p2)
-         if dead != None:
-            p2=dead
-         if p1choice.recoil != None:
-            recoil = damage*(p1choice.recoil[0]/p1choice.recoil[1])
-            p1.poke.hp = new_health(recoil, p1)
-            dead = check_dead(team1, p1)
-            if dead == True:
-               print('Player 2 wins')
-               break
-            if dead != None:
-               p1=dead
-      elif p2choice != 2 and p1choice == 2:
-         damage, clear= damage_calc(p2choice, p2, p1)
-         print(clear)
-         if clear == 1:
-            p2.status = None
-         if clear == 2:
-            p2.status['slp'] += 1
-         p1.poke.hp = new_health(damage, p1)
-         dead = check_dead(team1, p1)
-         if dead != None:
-            p1=dead
-         if p2choice.recoil != None:
-            recoil = damage*(p2choice.recoil[0]/p2choice.recoil[1])
-            p2.poke.hp = new_health(recoil, p2)
+                     break               
+               else:
+                  if random.randint(1,2) == 1: #if there is a speed and priority tie its a coin flip of who goes first.
+                     p1, p1choice, team1,p2,p2choice,team2 = resolve_attacking_turn(p1, p1choice, team1,p2,p2choice,team2)
+                     if p1 == 0 or p1 == 1:
+                        break
+                  else:
+                     p2,p2choice,team2,p1, p1choice, team1 = resolve_attacking_turn(p2,p2choice,team2,p1, p1choice, team1)
+                     if p2 == 0 or p2 == 1:
+                        break
+                     
+            elif p1choice.priority > p2choice.priority:
+               p1, p1choice, team1,p2,p2choice,team2 = resolve_attacking_turn(p1, p1choice, team1,p2,p2choice,team2)
+               if p1 == 0 or p1 == 1:
+                  break
+            elif p1choice.priority < p2choice.priority:
+               p2,p2choice,team2,p1, p1choice, team1 = resolve_attacking_turn(p2,p2choice,team2,p1, p1choice, team1)
+               if p2 == 0 or p2 == 1:
+                  break
+         elif p1choice != 2 and p2choice == 2:
+            damage, clear= damage_calc(p1choice, p1, p2)
+         
+            if clear == 1:
+               p1.status = None
+            if clear == 2:
+               p1.status['slp'] += 1
+            p2.poke.hp = new_health(damage, p2)
             dead = check_dead(team2, p2)
-            if dead == True:
-               print('Player 1 wins')
-               break
             if dead != None:
                p2=dead
-      p1 = end_of_turn_effects(p1)
-      p1lose = check_dead(team1, p1)
-      if p1lose == True:
-         print('Player 2 wins')
-         break
-      if p1lose != None:
-         p1 = p1lose
-      p2 = end_of_turn_effects(p2)
-      p2lose = check_dead(team2,p2)
-      if p2lose == True:
-         print("player 1 wins")
-         break
-      if p2lose != None:
-         p2 = p2lose  
-      print(p1.status)
-      print(p2.status) 
-   print("game over")
-      
+            if p1choice.recoil != None:
+               if damage > p2starthp:
+                  damage = p2starthp
+               recoil = damage*(p1choice.recoil[0]/p1choice.recoil[1])
+               p1.poke.hp = new_health(recoil, p1)
+               dead = check_dead(team1, p1)
+               if dead == True:
+                  print('Player 2 wins')
+                  break
+               if dead != None:
+                  p1=dead
+         elif p2choice != 2 and p1choice == 2:
+            damage, clear= damage_calc(p2choice, p2, p1)
+            print(clear)
+            if clear == 1:
+               p2.status = None
+            if clear == 2:
+               p2.status['slp'] += 1
+            p1.poke.hp = new_health(damage, p1)
+            dead = check_dead(team1, p1)
+            if dead != None:
+               p1=dead
+            if p2choice.recoil != None:
+               if p1starthp > damage:
+                  damage = p1starthp
+               recoil = damage*(p2choice.recoil[0]/p2choice.recoil[1])
+               p2.poke.hp = new_health(recoil, p2)
+               dead = check_dead(team2, p2)
+               if dead == True:
+                  print('Player 1 wins')
+                  break
+               if dead != None:
+                  p2=dead
+         #end of turn effects for all variations
+         p1 = end_of_turn_effects(p1)
+         p1lose = check_dead(team1, p1)
+         if p1lose == True:
+            print('Player 2 wins')
+            break
+         if p1lose != None:
+            p1 = p1lose
+         p2 = end_of_turn_effects(p2)
+         p2lose = check_dead(team2,p2)
+         if p2lose == True:
+            print("player 1 wins")
+            break
+         if p2lose != None:
+            p2 = p2lose  
+         print(p1.status)
+         print(p2.status) 
+      print("game over")
+      re = input("would you like to play again? (y/n) ")
+      if re == 'n':
+         rematch = False
 
 
 # print(move_data['dracometeor'].self)
@@ -188,6 +212,8 @@ def main():
 
 def resolve_attacking_turn(firstmon, firstmove, firstteam, secondmon, secondmove, secondteam):
    nosecondturn = False
+   firstmaxrec = firstmon.poke.hp
+   secmaxrec = secondmon.poke.hp
    print("{0}'s turn:\n".format(firstmon.name))
    damage, clear = damage_calc(firstmove, firstmon,secondmon)
    if clear == 1:
@@ -203,7 +229,9 @@ def resolve_attacking_turn(firstmon, firstmove, firstteam, secondmon, secondmove
       secondmon = dead
       nosecondturn = True
    if firstmove.recoil != None:
-      recoil = damage*(firstmove.recoil[0]/firstmove.recoil[1])
+      if damage > secmaxrec:
+         damage = secmaxrec
+      recoil = math.trunc(damage*(firstmove.recoil[0]/firstmove.recoil[1]))
       print("{0} took recoil".format(firstmon.name))
       firstmon.poke.hp = new_health(recoil, firstmon)
       recdead = check_dead(firstteam,firstmon)
@@ -227,7 +255,9 @@ def resolve_attacking_turn(firstmon, firstmove, firstteam, secondmon, secondmove
       if dead != None:
          firstmon = dead
       if secondmove.recoil != None:
-         recoil = damage*(secondmove.recoil[0]/secondmove.recoil[1])
+         if firstmaxrec > damage:
+            damage = firstmaxrec
+         recoil = math.trunc(damage*(secondmove.recoil[0]/secondmove.recoil[1]))
          print("{0} took recoil".format(secondmon.name))
          secondmon.poke.hp = new_health(recoil, secondmon)
          dead = check_dead(secondteam,secondmon)
@@ -242,7 +272,7 @@ def switch(team, mon):
    if len(team) > 1:
       team.remove(mon)
       new = choose_mon(team)
-      mon.changes = {'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6} #stat changes get reset when switching out.
+      mon.changes = {'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6} #stat changes get reset when switching out.
       try:
          mon.status['tox'] = 1 #toxic counter gets reset on switch out unlike sleep
          team.append(mon)
@@ -269,9 +299,9 @@ def check_dead(team, mon):
 def pokemon_select(): #function to pick a pokemon then their moves. will be repeated 6 times per player
    pkm_team = []
    pkm_team_names = []
-   while len(pkm_team) < 2:
+   while len(pkm_team) < 6:
       print("Current team:", pkm_team_names)
-      choice = input('Type the pokemon you want: ').lower()
+      choice = input('Type the pokemon you want up to Gen 4: ').lower()
       try:
          mon = pokemon_data[choice]
          if mon in pkm_team:
@@ -290,7 +320,7 @@ def pokemon_select(): #function to pick a pokemon then their moves. will be repe
 
 def choose_mon(team):
    for x in range(1,len(team)+1):
-      print("{0}. {1} {2}".format(x, team[x-1].name,team[x-1].status))
+      print("{0}. {1} {2}hp {3}".format(x, team[x-1].name,team[x-1].poke.hp, team[x-1].status))
    p1 = int(input("choose your Pokemon number: "))
    return(team[p1-1])
 
@@ -315,9 +345,11 @@ def move_select(pkm_list):
          try:
             move = input("What move do you want to select: ")
             choice = move_data[move]
+            # print(move)
+            # print(choice)
             if choice in moves:
                print('Only 1 copy of a move is allowed')
-            if choice in mon.learn:
+            if move in mon.learn:
                moves.append(choice)
                move_names.append(choice.name)
             else:
@@ -325,7 +357,7 @@ def move_select(pkm_list):
          except:
             print('enter a valid move')
       print(move_names)
-      pkm_with_moves = Pokemon2(mon, moves, mon.hp, stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6}, status=None) #if stat_changes uses the default each class seems to be referencing the same dictionary
+      pkm_with_moves = Pokemon2(mon, moves, mon.hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'accuracy':6,'evasion':6}, status=None) #if stat_changes uses the default each class seems to be referencing the same dictionary
       combined.append(pkm_with_moves)
    return(combined)
 
@@ -339,35 +371,71 @@ def move_select(pkm_list):
 #    print(mon.name,mon.move_names)
 
 def end_of_turn_effects(mon):
-   print('end of turn effects')
+   # print('end of turn effects')
    if mon.status in ['brn','psn']:
       dam = math.trunc((mon.max*(1/8)))#psn and brn do 1/8 total hp per turn
-      print("{0} was hurt by {1}".format(mon.name,mon.status))
+      print("{0} was hurt by {1} ({2})".format(mon.name,mon.status,dam))
       mon.poke.hp = new_health(dam, mon)
    if type(mon.status) == type({'ex':1}): #checking if it's slp or tox, probably a better way
       if 'tox' in mon.status.keys():
          dam = math.trunc((mon.max*(mon.status['tox']/16))) #tox does increasing damage for every turn the mon is on the field
          mon.status['tox'] += 1 #slp counter ticks when mon attempts attacking where tox ticks when it deals damage
-         print("{0} was hurt by tox".format(mon.name))
+         print("{0} was hurt by tox ({1})".format(mon.name, dam))
          mon.poke.hp = new_health(dam,mon)
+   if mon.poke.hp !=0 and mon.poke.hp != mon.max:
+      if mon.itm == 'leftovers':
+         heal = math.trunc(mon.max/16)
+         print("{0}'s leftovers healed it by {1}".format(mon.name, heal))
+         mon.poke.hp = new_health(heal*-1,mon)
    return mon
 
 def new_health(damage, recieveing_mon):
    remaining = recieveing_mon.poke.hp-damage
+   if remaining > recieveing_mon.max:
+      remaining=recieveing_mon.max
    if remaining<0:
         remaining = 0
+        print("{0} has fainted".format(recieveing_mon.name))
    if damage != 0:
       print("{0} has {1} health remaining\n".format(recieveing_mon.name,remaining))
    return(remaining)
 
-# def status_move(move):
-#    if move.target = 
+def status_move(move, dodge, att_mon, def_mon):
+   if move.target == 'self':
+      if dodge in [1,4]:
+         for x in move.opp.keys():
+            att_mon.changes[x] += move.opp[x]
+            if att_mon.changes[x] > 12:
+               att_mon.changes[x] = 12
+            if att_mon.changes[x] < 0:
+               att_mon.changes[x] = 0
+   else:
+      if dodge in [1,4]:
+         try:
+            for x in move.opp.keys():
+               print(def_mon.name,x, move.opp[x])
+               def_mon.changes[x] += move.opp[x]
+               if def_mon.changes[x] > 12:
+                  def_mon.changes[x] = 12
+               if def_mon.changes[x] < 0:
+                  def_mon.changes[x] = 0
+         except:
+            print("")
+         try:
+            if def_mon.status == None:
+               if move.self in ['par', 'brn','psn','frz']:
+                  def_mon.status = move.self
+               elif move.self in ['slp', 'tox']:
+                  def_mon.status = {move.self:1}
+         except:
+            print('')
+
 
 
 def dodge_chance(move, att_mon, def_mon):
    eva_acc_table = [.33, .36, .43, .50, .60, .75, 1, 1.33, 1.66, 2, 2.5, 2.66, 3]
-   att_acc = eva_acc_table[att_mon.changes['acc']]
-   def_eva = eva_acc_table[def_mon.changes['eva']]
+   att_acc = eva_acc_table[att_mon.changes['accuracy']]
+   def_eva = eva_acc_table[def_mon.changes['evasion']]
    att_status = att_mon.status
    hit_chance = move.acc
    if att_status == 'par':
@@ -400,6 +468,8 @@ def dodge_chance(move, att_mon, def_mon):
          else:
             print("{0} woke up".format(att_mon.name))
             return(4)
+   if att_acc == True:
+      return(1)
    rand = random.randint(1,100)
    rand = (rand*def_eva)/att_acc
    if rand>hit_chance:
@@ -526,6 +596,7 @@ def damage_calc(move, attacking_mon, defending_mon):
    spatk = attacking_mon_stats.spatk*stat_table[attacking_mon.changes['spa']]
    defence = defending_mon_stats.defence*stat_table[defending_mon.changes['def']]
    spdef = defending_mon_stats.spdef*stat_table[defending_mon.changes['spd']]
+   print("{0} used {1}".format(attacking_mon.name, move.name))
    if move.type == attacking_type1 or move.type == attacking_type2: #if the move type and pokemon type are the same it does 1.5x damage
       stab = 1.5
    else:
@@ -533,6 +604,13 @@ def damage_calc(move, attacking_mon, defending_mon):
    rand = damage_roll() #random number between .85 and 1
    crit = critical() #1 in 24 chance to deal 1.5x damage
    dodge = dodge_chance(move, attacking_mon, defending_mon)
+   if dodge == 4:
+      clear = 1
+   if dodge == 3:
+      return(0,2)
+   if attack_type == 'Status':
+      status_move(move, dodge, attacking_mon, defending_mon)
+      return(0,clear)
    if dodge in [0,3]:
       hit = 0
    if attacking_mon.status == 'brn':
@@ -541,10 +619,8 @@ def damage_calc(move, attacking_mon, defending_mon):
       damage = (((42*power*(spatk/spdef))/50)+2)*super_effective*stab*crit*rand*hit #the actual calculation
    else:
       damage = (((42*power*burn*(atk/defence))/50)+2)*super_effective*stab*crit*rand*hit #the actual calculation. Only atk is changed by burn status
-   if dodge == 3:
-      return(0,2)
-   elif dodge == 1 or dodge == 4:
-      print("{0} used {1}".format(attacking_mon.name, move.name))
+   
+   if dodge == 1 or dodge == 4:
       if crit == 1.5:
          print("Its a Critical Hit! ")
       if super_effective>1:
@@ -558,8 +634,6 @@ def damage_calc(move, attacking_mon, defending_mon):
       if move.self != None:
          effect = self_effect(move)
          self_effect_apply(move, effect, attacking_mon, defending_mon)
-      if dodge == 4:
-         clear = 1
    return(math.trunc(damage),clear)
 
 
@@ -572,10 +646,22 @@ main()
 # print(team1.status)
 # print(damage_calc(bulbasaur.moves[1], bulbasaur, mankey))
 # print(mankey.changes)
+# team1 = [Pokemon2(pokemon_data['kyogre'], [move_data['growl'],move_data['willowisp'],move_data['tackle'],move_data['hydropump']],pokemon_data['kyogre'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6}),
+#              Pokemon2(pokemon_data['groudon'], [move_data['swordsdance'],move_data['earthquake'],move_data['firepunch'],move_data['doubleedge']],pokemon_data['groudon'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6})]
+# team2 = [Pokemon2(pokemon_data['caterpie'], [move_data['calmmind'],move_data['toxic'],move_data['icebeam'],move_data['doubleedge']],pokemon_data['caterpie'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6}, status =None),
+#              Pokemon2(pokemon_data['wooper'], [move_data['ancientpower'],move_data['aquatail'],move_data['quickattack'],move_data['hydropump']],pokemon_data['wooper'].hp, 'leftovers', stat_changes={'atk':6,'def':6,'spa':6,'spd':6,'spe':6,'acc':6,'eva':6})]
+   
+# print(pokemon_data['caterpie'].all)
+# print(team2[0].max, team2[0].poke.hp)
+# print(pokemon_data['kyogre'].all)
+# print(pokemon_data['wooper'].all)
 
 
-# print(move_data['ember'].all)
-# # print(move_data['leafstorm'].all)
+
+
+# print(move_data['harden'].all)
+# print(move_data['growl'].all)
+# print(move_data['leafstorm'].all)
 # print(move_data['ancientpower'].all)
 
 
